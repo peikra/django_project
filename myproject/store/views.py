@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from .models import Category, Product
 from django.http import JsonResponse
 
-def product(request):
+def category(request):
     categories = Category.objects.all()
     category_data = []
 
@@ -30,7 +30,7 @@ def get_last_parent_category(categories):
 
 
 
-def product_list(request):
+def product(request):
     products = Product.objects.all()
     product_data = []
 

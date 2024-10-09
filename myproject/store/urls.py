@@ -5,8 +5,8 @@ from django.urls import path
 from django.conf import settings
 
 urlpatterns = [
-    path('products/', views.product),
-    path('products/productlist/', views.product_list)
+    path('category/', views.category),
+    path('category/product/', views.product)
 
 
 ]
