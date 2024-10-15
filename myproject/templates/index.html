@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+ <h1>Categories </h1>
+<div >
+
+    {%for cat in category%}
+        {%if cat.parent is None%}
+        <div style="display:flex; ">
+           <h2><a href="{% url 'category_products' cat.id %}">{{ cat.name }}</a></h2>
+           <h3 style="margin-left:20px">რაოდენობა : {{ cat.product_count }} </h3>
+        </div>
+        {%endif%}
+    {%endfor%}
+
+
+</div>
+
+
+
+
+
+
+</body>
+</html>

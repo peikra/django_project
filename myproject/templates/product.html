@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ category.name }} </title>
+</head>
+<body>
+ <h1 style="text-align:center;color:blue" >{{ category.name }} </h1>
+<div style="display:flex" >
+
+
+    <div >
+        {% for product in page_obj%}
+        <div style="display:flex">
+            <h2 ><a href="{% url 'product' product.id %}">{{ product.name }}</a></h2>
+             <h2 style="font-size:22px; margin-left:25px; color:red">საერთო ჯამური ღირებულება: {{product.total}}ლ </h2>
+        </div>
+        {% endfor %}
+
+    </div>
+
+
+    <div>
+        <h4 style="margin-left: 30px">ყველაზე ძვირიანი პროდუქტი {{expensive}}, ფასი: {{expensive.price}}ლ</h4>
+        <h4 style="margin-left: 30px">ყველაზე იაფიანი პროდუქტი {{cheap}}, ფასი: {{cheap.price}}ლ</h4>
+        <h4 style="margin-left: 30px">პროდუქტების საშუალო ფასი: {{average_price.average_price}}ლ</h4>
+        <h4 style="margin-left: 30px">ყველა პროდუქტის ჯამური ღირებულება: {{sub_total.sub_total}}ლ</h4>
+    </div>
+</div>
+<br>
+<br>
+{{page_obj}}
+
+{% if page_obj.has_previous%}
+    <a href="?page=1">&laquo First</a>
+    <a href="?page={{page_obj.previous_page_number}}">Previous</a>
+
+{%endif%}
+
+{%if page_obj.has_next%}
+    <a href="?page={{page_obj.next_page_number}}">Next</a>
+    <a href="?page={{page_obj.paginator.num_pages}}">Last</a>
+
+{%endif%}
+
+</body>
+</html>
