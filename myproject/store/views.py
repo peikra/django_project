@@ -7,21 +7,38 @@ from .models import Category, Product
 from django.http import JsonResponse
 
 
+def get_subcategories(category):
+    subcategories = category.children.all()
+    all_subcategories = list(subcategories)
+
+
+    for subcategory in subcategories:
+        all_subcategories += get_subcategories(subcategory)
+
+    return all_subcategories
 
 
 
 def category(request):
+    categories = Category.objects.prefetch_related('products').annotate(product_count=Count('products'))
 
 
-    category = Category.objects.prefetch_related('parent').annotate(product_count=Count('products'))
-    return render(request,'index.html',{'category' : category})
+    for category in categories:
+        subcategories = get_subcategories(category)
+        subcategories.append(category)
+
+
+        total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
+        category.total_products_count = total_products
+    return render(request,'index.html',{'categories' : categories})
 
 
 def category_products(request, cat_id):
+    category = get_object_or_404(Category, id=cat_id)
 
-    category = get_object_or_404(Category.objects.prefetch_related('parent'), id=cat_id)
-    products = Product.objects.filter(categories=category)
-
+    subcategories = get_subcategories(category)
+    subcategories.append(category)
+    products = Product.objects.filter(categories__in=subcategories).distinct()
 
     sum = products.annotate(total=F('quantity') * F('price'))
     expensive =  products.order_by('-price').first()
@@ -35,7 +52,7 @@ def category_products(request, cat_id):
 
     return render(request, 'product.html', {'category': category,  "sum" : sum,
                                             'expensive': expensive, 'cheap' :cheap, 'average_price' : average_price,
-                                            'sub_total': sub_total,'page_obj': page_obj})
+                                            'sub_total': sub_total,'page_obj': page_obj,})
 
 
 def product(request,product_id):
@@ -43,6 +60,8 @@ def product(request,product_id):
     categories = products.categories.all()
 
     return render(request,'product_detail.html',{'products':products,'categories':categories})
+
+
 
 
 
