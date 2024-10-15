@@ -20,7 +20,7 @@ def get_subcategories(category):
 
 
 def category(request):
-    categories = Category.objects.prefetch_related('products').annotate(product_count=Count('products'))
+    categories = Category.objects.prefetch_related('products','children','parent')
 
 
     for category in categories:
@@ -37,6 +37,7 @@ def category_products(request, cat_id):
     category = get_object_or_404(Category, id=cat_id)
 
     subcategories = get_subcategories(category)
+
     subcategories.append(category)
     products = Product.objects.filter(categories__in=subcategories).distinct()
 
