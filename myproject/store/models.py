@@ -6,6 +6,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='children', null=True, blank=True)
 
+
     class Meta:
         verbose_name_plural = "categories"
 
@@ -36,6 +37,12 @@ class Product(models.Model):
     categories = models.ManyToManyField(Category, related_name='products')
     image = models.ImageField(upload_to='products/',null=True, blank=True)
     quantity = models.IntegerField(default=0)
+    star = models.IntegerField(default=0)
+    weight = models.FloatField(null=True)
+    country_of_origin = models.TextField(null=True)
+    quality = models.CharField(max_length=50,null=True)
+    validate_product = models.CharField(max_length=70,null=True)
+    min_weight = models.FloatField(null=True)
 
     def __str__(self):
         return self.name
