@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'store',
     'order',
-    'user'
+    'user',
+    'versatileimagefield'
 
 
 ]

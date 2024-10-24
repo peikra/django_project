@@ -1,10 +1,12 @@
 from django.db import models
 # Create your models here.
 from django.db import models
+from versatileimagefield.fields import VersatileImageField
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
     parent = models.ForeignKey('self', on_delete=models.CASCADE, related_name='children', null=True, blank=True)
+    slug = models.SlugField(unique=True)
 
 
     class Meta:
@@ -35,7 +37,7 @@ class Product(models.Model):
     description = models.TextField()
     price = models.FloatField()
     categories = models.ManyToManyField(Category, related_name='products')
-    image = models.ImageField(upload_to='products/',null=True, blank=True)
+    image = VersatileImageField(upload_to='products/',null=True, blank=True)
     quantity = models.IntegerField(default=0)
     star = models.IntegerField(default=0)
     weight = models.FloatField(null=True)
