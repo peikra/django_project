@@ -97,7 +97,7 @@ def shop(request,slug=None):
         total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
         category.total_products_count = total_products
 
-    paginator = Paginator(products, 4)
+    paginator = Paginator(products, 3)
     page_number = request.GET.get('page')
     try:
         products = paginator.page(page_number)
