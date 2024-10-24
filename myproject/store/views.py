@@ -66,10 +66,10 @@ def get_subcategories(category):
 
 
 #
-def shop(request,slug=None):
+def shop(request, slug=None):
     categories = Category.objects.prefetch_related('products', 'children', 'parent')
     subcat = ''
-
+    products = Product.objects.all()
 
     if slug:
 
@@ -78,61 +78,30 @@ def shop(request,slug=None):
         subcategories.append(category)
 
 
-        products = Product.objects.filter(categories__in=subcategories).distinct()
+        products = products.filter(categories__in=subcategories).distinct()
         for subcategory in subcategories:
-
-             total_products= Product.objects.filter(categories=subcategory).count()
-             subcategory.total_products_count = total_products
-
-
+            total_products = Product.objects.filter(categories=subcategory).count()
+            subcategory.total_products_count = total_products
         subcat = subcategories
-    else:
 
-        products = Product.objects.all()
-
-
-    for category in categories:
-        subcategories = get_subcategories(category)
-        subcategories.append(category)
-        total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
-        category.total_products_count = total_products
-
-    paginator = Paginator(products, 3)
-    page_number = request.GET.get('page')
-    try:
-        products = paginator.page(page_number)
-    except PageNotAnInteger:
-        products = paginator.page(1)
-    except EmptyPage:
-        products = paginator.page(paginator.num_pages)
-
-    form = ProductSearchForm(request.POST or None)
+    form = ProductSearchForm(request.GET or None)
     results = Product.objects.all()
-    price_limit = None
-    query = ''
-
-    if request.method == 'POST':
-
-        if form.is_valid():
-            query = form.cleaned_data.get('query', '')
+    query = request.GET.get('query', '')
+    price_limit = request.GET.get('price')
 
 
-        price_limit = request.POST.get('price')
-        if price_limit:
-            try:
-                price_limit = float(price_limit)
-            except ValueError:
-                price_limit = None
+    if query:
+        results = results.filter(name__icontains=query)
+        products = results
 
 
-        if query:
-            results = results.filter(name__icontains=query)
-            products = results
-
-
-        if price_limit is not None and price_limit > 0:
+    if int(price_limit)>0:
+        try:
+            price_limit = float(price_limit)
             results = results.filter(price__lte=price_limit)
             products = results
+        except ValueError:
+            price_limit = None
 
 
 
@@ -143,14 +112,7 @@ def shop(request,slug=None):
         'form': form,
         'slug': slug,
         'subcat': subcat,
-        'paginator': paginator
-
-
-
     })
-
-from django.shortcuts import render
-from .models import Product
 
 
 

@@ -9,8 +9,7 @@ urlpatterns = [
     # path('category/<int:cat_id>/products/', views.category_products, name='category_products'),
     # path('product/<int:product_id>', views.product, name='product'),
     path('category/shop/', views.shop, name='shop'),
-    path('category/<slug:slug>/', views.shop, name='category_products'),  # Category-specific
-
+    path('category/<slug:slug>/', views.shop, name='category_products'),
     path('product/shop-detail/', views.shop_detail, name='shop_detail'),
 
 
