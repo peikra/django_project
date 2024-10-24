@@ -95,13 +95,13 @@ def shop(request, slug=None):
         products = results
 
 
-    if int(price_limit)>0:
-        try:
+    if price_limit:
+        if int(price_limit)>0:
+
             price_limit = float(price_limit)
             results = results.filter(price__lte=price_limit)
             products = results
-        except ValueError:
-            price_limit = None
+
 
 
 
