@@ -1,7 +1,6 @@
 
 {%extends 'base.html'%}
 {%load static%}
-
 {%block content%}
 
 
@@ -188,7 +187,7 @@
                                             <div class="rounded position-relative fruite-item">
                                                 <div class="fruite-img">
                                                     {% if product.image %}
-                                                        <img src="{{ product.image.url }}" class="img-fluid w-100 rounded-top"   alt="">
+                                                        <img src="{{  product.image.thumbnail.304x212 }}" class="img-fluid w-100 rounded-top"   alt="">
                                                     {% else %}
                                                      <img src="path/to/default/image.jpg" class="img-fluid w-100 rounded-top" alt="No image available">
                                                     {% endif %}

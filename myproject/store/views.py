@@ -72,72 +72,71 @@ def shop(request,slug=None):
 
 
     if slug:
-        # Fetch the category by slug
+
         category = get_object_or_404(Category, slug=slug)
         subcategories = get_subcategories(category)
         subcategories.append(category)
 
-        # Filter products by the selected category and its subcategories
+
         products = Product.objects.filter(categories__in=subcategories).distinct()
         for subcategory in subcategories:
-            # Calculate total products for each subcategory
+
              total_products= Product.objects.filter(categories=subcategory).count()
              subcategory.total_products_count = total_products
 
 
         subcat = subcategories
     else:
-        # If no category selected, show all products
+
         products = Product.objects.all()
 
-    # Calculate total products for each category
+
     for category in categories:
         subcategories = get_subcategories(category)
         subcategories.append(category)
         total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
         category.total_products_count = total_products
 
-    paginator = Paginator(products, 4)  # Show 10 products per page
-    page_number = request.GET.get('page')  # Get the current page number
+    paginator = Paginator(products, 4)
+    page_number = request.GET.get('page')
     try:
         products = paginator.page(page_number)
     except PageNotAnInteger:
-        products = paginator.page(1)  # If page is not an integer, deliver first page.
+        products = paginator.page(1)
     except EmptyPage:
-        products = paginator.page(paginator.num_pages)  # If page is out of range, deliver last page of results.
+        products = paginator.page(paginator.num_pages)
 
     form = ProductSearchForm(request.POST or None)
-    results = Product.objects.all()  # Start with all products
+    results = Product.objects.all()
     price_limit = None
-    query = ''  # Ensure query is always defined, even if empty
+    query = ''
 
     if request.method == 'POST':
-        # Check if the form is valid; if invalid, 'query' is already initialized as empty
+
         if form.is_valid():
             query = form.cleaned_data.get('query', '')
 
-        # Get the price limit from the form input
+
         price_limit = request.POST.get('price')
         if price_limit:
             try:
                 price_limit = float(price_limit)
             except ValueError:
-                price_limit = None  # Set to None if conversion fails
+                price_limit = None
 
-        # Apply filters:
-        # 1. Filter by product name if query is provided
+
         if query:
             results = results.filter(name__icontains=query)
             products = results
 
-        # 2. Apply price filter if price_limit is set
+
         if price_limit is not None and price_limit > 0:
             results = results.filter(price__lte=price_limit)
             products = results
 
 
 
-    # Render template with filtered products and categories
+
     return render(request, 'shop.html', {
         'products': products,
         'categories': categories,
