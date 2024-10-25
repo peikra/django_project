@@ -81,7 +81,7 @@ def shop(request, slug=None):
         total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
         category.total_products_count = total_products
 
-        category='shop'
+    category='shop'
 
 
     if slug:
