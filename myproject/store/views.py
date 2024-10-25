@@ -1,11 +1,14 @@
 
 from django.db.models import Count, F, Sum, Avg
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from .models import Category, Product, ProductTags
 from django.http import JsonResponse
 from .forms import ProductSearchForm
+from order.models import Cart
+from order.models import CartItem
+
 
 def get_subcategories(category):
     subcategories = category.children.all()
@@ -78,6 +81,8 @@ def shop(request, slug=None):
         total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
         category.total_products_count = total_products
 
+        category='shop'
+
     if slug:
 
         category = get_object_or_404(Category, slug=slug)
@@ -101,11 +106,10 @@ def shop(request, slug=None):
     if sorting_options!='nothing':
         if sorting_options=='price':
             results = results.order_by('price')
+            products = results
         elif sorting_options=='star':
             results = results.order_by('-star')
-
-    products = results
-
+            products = results
 
 
     if query:
@@ -132,6 +136,10 @@ def shop(request, slug=None):
     except EmptyPage:
         products = paginator.page(paginator.num_pages)
 
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    # Calculate total items in the cart
+    total_cart_items = sum(item.quantity for item in cart.items.all())
 
 
 
@@ -142,8 +150,29 @@ def shop(request, slug=None):
         'form': form,
         'slug': slug,
         'subcat': subcat,
-        'tags' : tags
+        'tags' : tags,
+        'total_cart_items' : total_cart_items,
+        'category':category
     })
+
+
+def add_product(request,product_id):
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id)
+        cart, created = Cart.objects.get_or_create(user=request.user)
+
+        if product.quantity>0:
+            # Add product to cart
+
+            cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+            cart_item.quantity += 1  # Increment quantity
+            cart_item.save()
+            product.quantity-=1
+            product.save()
+
+
+    return redirect('shop')
+
 
 
 
