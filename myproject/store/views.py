@@ -172,8 +172,6 @@ def add_product(request,product_id):
 
 
 
-
-
 def shop_detail(request):
     return render(request,'shop-detail.html')
 
