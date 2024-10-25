@@ -1,8 +1,9 @@
+
 from django.db.models import Count, F, Sum, Avg
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from .models import Category, Product
+from .models import Category, Product, ProductTags
 from django.http import JsonResponse
 from .forms import ProductSearchForm
 
@@ -67,9 +68,15 @@ def get_subcategories(category):
 
 #
 def shop(request, slug=None):
-    categories = Category.objects.prefetch_related('products', 'children', 'parent')
+    categories = Category.objects.prefetch_related('products', 'children', 'parent').filter(parent__isnull=True)
     subcat = ''
     products = Product.objects.all()
+    tags = ProductTags.objects.all()
+    for category in categories:
+        subcategories = get_subcategories(category)
+        subcategories.append(category)
+        total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
+        category.total_products_count = total_products
 
     if slug:
 
@@ -88,19 +95,42 @@ def shop(request, slug=None):
     results = Product.objects.all()
     query = request.GET.get('query', '')
     price_limit = request.GET.get('price')
+    tag = request.GET.get('tags')
+    sorting_options = request.GET.get('fruitlist')
+
+    if sorting_options!='nothing':
+        if sorting_options=='price':
+            results = results.order_by('price')
+        elif sorting_options=='star':
+            results = results.order_by('-star')
+
+    products = results
+
 
 
     if query:
         results = results.filter(name__icontains=query)
         products = results
 
+    if tag:
+        results = results.filter(tags__name=tag)
+        products = results
+
 
     if price_limit:
         if int(price_limit)>0:
-
             price_limit = float(price_limit)
             results = results.filter(price__lte=price_limit)
             products = results
+
+    paginator = Paginator(products, 6)
+    page_number = request.GET.get('page')
+    try:
+        products = paginator.page(page_number)
+    except PageNotAnInteger:
+        products = paginator.page(1)
+    except EmptyPage:
+        products = paginator.page(paginator.num_pages)
 
 
 
@@ -112,6 +142,7 @@ def shop(request, slug=None):
         'form': form,
         'slug': slug,
         'subcat': subcat,
+        'tags' : tags
     })
 
 

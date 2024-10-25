@@ -30,6 +30,11 @@ class Category(models.Model):
         return parents
 
 
+class ProductTags(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
 
 
 class Product(models.Model):
@@ -43,8 +48,10 @@ class Product(models.Model):
     weight = models.FloatField(null=True)
     country_of_origin = models.TextField(null=True)
     quality = models.CharField(max_length=50,null=True)
-    validate_product = models.CharField(max_length=70,null=True)
     min_weight = models.FloatField(null=True)
+    tags = models.ManyToManyField(ProductTags,related_name='product_tags')
 
     def __str__(self):
         return self.name
+
+
