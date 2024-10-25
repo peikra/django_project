@@ -82,7 +82,7 @@ def shop(request, slug=None):
         category.total_products_count = total_products
 
         category='shop'
-        adca
+
 
     if slug:
 
@@ -128,7 +128,7 @@ def shop(request, slug=None):
             results = results.filter(price__lte=price_limit)
             products = results
 
-    paginator = Paginator(products, 6)
+    paginator = Paginator(products, 3)
     page_number = request.GET.get('page')
     try:
         products = paginator.page(page_number)
@@ -139,7 +139,7 @@ def shop(request, slug=None):
 
     cart, created = Cart.objects.get_or_create(user=request.user)
 
-    # Calculate total items in the cart
+
     total_cart_items = sum(item.quantity for item in cart.items.all())
 
 
@@ -163,10 +163,8 @@ def add_product(request,product_id):
         cart, created = Cart.objects.get_or_create(user=request.user)
 
         if product.quantity>0:
-            # Add product to cart
-
             cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
-            cart_item.quantity += 1  # Increment quantity
+            cart_item.quantity += 1
             cart_item.save()
             product.quantity-=1
             product.save()
