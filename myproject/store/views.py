@@ -82,7 +82,7 @@ def shop(request, slug=None):
         category.total_products_count = total_products
 
         category='shop'
-
+        adca
 
     if slug:
 
