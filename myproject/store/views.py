@@ -83,6 +83,7 @@ def shop(request, slug=None):
 
         category='shop'
 
+
     if slug:
 
         category = get_object_or_404(Category, slug=slug)
