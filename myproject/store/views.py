@@ -88,8 +88,6 @@ def shop(request, slug=None):
 
         category = get_object_or_404(Category, slug=slug)
         subcategories = get_subcategories(category)
-        subcategories.append(category)
-
 
         products = products.filter(categories__in=subcategories).distinct()
         for subcategory in subcategories:
