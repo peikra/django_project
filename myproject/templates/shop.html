@@ -55,8 +55,9 @@
                                             <h4>Categories</h4>
                                             <ul class="list-unstyled fruite-categorie">
                                                 {%if slug%}
-                                                    {% for i in subcat %}
-<!--                                                        {%if i.parent != None%}-->
+                                                    {%if subcat|length != 1%}
+                                                        {% for i in subcat %}
+
                                                     <li>
                                                         <div class="d-flex justify-content-between fruite-name">
                                                             <!-- Link to category page -->
@@ -64,9 +65,10 @@
                                                             <span>{{ i.total_products_count }}</span>
                                                         </div>
                                                     </li>
-<!--                                                        {%endif%}-->
 
-                                                    {% endfor %}
+
+                                                        {% endfor %}
+                                                    {%endif%}
                                                 {%else%}
                                                  {% for i in categories %}
 <!--                                                    {%if i.parent is None%}-->
