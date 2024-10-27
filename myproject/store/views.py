@@ -234,7 +234,7 @@ class ShopView(ListView):
         cart, created = Cart.objects.get_or_create(user=self.request.user)
         context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
 
-        # პაგინაცია ვერ ავამუშაე :(
+
 
         return context
 
