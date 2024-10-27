@@ -235,29 +235,33 @@
                                     <div class="col-12">
 <div class="pagination d-flex justify-content-center mt-5">
     {% if products.has_previous %}
-        <a href="?page=1&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{request.GET.fruitlist}}" class="rounded">&laquo;</a>  <!-- First page -->
-        <a href="?page={{ products.previous_page_number }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{request.GET.fruitlist}}" class="rounded">&lt;</a>  <!-- Previous page -->
+        <a href="?page=1&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{ request.GET.fruitlist }}" class="rounded">&laquo;</a>
+        <a href="?page={{ products.previous_page_number }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{ request.GET.fruitlist }}" class="rounded">&lt;</a>
     {% else %}
         <a class="rounded disabled">&laquo;</a>
         <a class="rounded disabled">&lt;</a>
     {% endif %}
-
+    <h3>{{products.paginator}}</h3>
     {% for num in products.paginator.page_range %}
         {% if products.number == num %}
             <a href="#" class="active rounded">{{ num }}</a>  <!-- Current page -->
         {% else %}
-            <a href="?page={{ num }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{request.GET.fruitlist}}" class="rounded">{{ num }}</a>  <!-- Other pages -->
+            <a href="?page={{ num }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{ request.GET.fruitlist }}" class="rounded">{{ num }}</a>
         {% endif %}
     {% endfor %}
 
     {% if products.has_next %}
-        <a href="?page={{ products.next_page_number }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{request.GET.fruitlist}}" class="rounded">&gt;</a>  <!-- Next page -->
-        <a href="?page={{ products.paginator.num_pages }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{request.GET.fruitlist}}" class="rounded">&raquo;</a>  <!-- Last page -->
+        <a href="?page={{ products.next_page_number }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{ request.GET.fruitlist }}" class="rounded">&gt;</a>
+        <a href="?page={{ products.paginator.num_pages }}&query={{ request.GET.query }}&price={{ request.GET.price }}&tags={{ request.GET.tags }}&fruitlist={{ request.GET.fruitlist }}" class="rounded">&raquo;</a>
     {% else %}
         <a class="rounded disabled">&gt;</a>
         <a class="rounded disabled">&raquo;</a>
     {% endif %}
 </div>
+
+</div>
+
+
 
 
                                 </div>

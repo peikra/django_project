@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views import View
-from django.views.generic import ListView
+from django.views.generic import ListView, TemplateView
 
 from .models import Category, Product, ProductTags
 from django.http import JsonResponse
@@ -59,6 +59,96 @@ from order.models import CartItem
 #     categories = products.categories.all()
 #
 #     return render(request,'product_detail.html',{'products':products,'categories':categories})
+
+
+# def shop(request, slug=None):
+#     categories = Category.objects.prefetch_related('products', 'children', 'parent').filter(parent__isnull=True)
+#     subcat = ''
+#     products = Product.objects.all()
+#     tags = ProductTags.objects.all()
+#     for category in categories:
+#         subcategories = get_subcategories(category)
+#         subcategories.append(category)
+#         total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
+#         category.total_products_count = total_products
+#
+#     category='shop'
+#
+#
+#     if slug:
+#
+#         category = get_object_or_404(Category, slug=slug)
+#         subcategories = get_subcategories(category)
+#
+#         if len(subcategories)==0:
+#             subcategories.append(category)
+#
+#
+#
+#         products = products.filter(categories__in=subcategories).distinct()
+#         for subcategory in subcategories:
+#             total_products = Product.objects.filter(categories=subcategory).count()
+#             subcategory.total_products_count = total_products
+#         subcat = subcategories
+#
+#     form = ProductSearchForm(request.GET or None)
+#     results = Product.objects.all()
+#     query = request.GET.get('query', '')
+#     price_limit = request.GET.get('price')
+#     tag = request.GET.get('tags')
+#     sorting_options = request.GET.get('fruitlist')
+#
+#     if sorting_options!='nothing':
+#         if sorting_options=='price':
+#             results = results.order_by('price')
+#             products = results
+#         elif sorting_options=='star':
+#             results = results.order_by('-star')
+#             products = results
+#
+#
+#     if query:
+#         results = results.filter(name__icontains=query)
+#         products = results
+#
+#     if tag:
+#         results = results.filter(tags__name=tag)
+#         products = results
+#
+#
+#     if price_limit:
+#         if int(price_limit)>0:
+#             price_limit = float(price_limit)
+#             results = results.filter(price__lte=price_limit)
+#             products = results
+#
+#     paginator = Paginator(products, 3)
+#     page_number = request.GET.get('page')
+#     try:
+#         products = paginator.page(page_number)
+#     except PageNotAnInteger:
+#         products = paginator.page(1)
+#     except EmptyPage:
+#         products = paginator.page(paginator.num_pages)
+#
+#     cart, created = Cart.objects.get_or_create(user=request.user)
+#
+#
+#     total_cart_items = sum(item.quantity for item in cart.items.all())
+#
+#
+#
+#
+#     return render(request, 'shop.html', {
+#         'products': products,
+#         'categories': categories,
+#         'form': form,
+#         'slug': slug,
+#         'subcat': subcat,
+#         'tags' : tags,
+#         'total_cart_items' : total_cart_items,
+#         'category':category
+#     })
 def get_subcategories(category):
     subcategories = category.children.all()
     all_subcategories = list(subcategories)
@@ -69,112 +159,104 @@ def get_subcategories(category):
 
     return all_subcategories
 
-def shop(request, slug=None):
-    categories = Category.objects.prefetch_related('products', 'children', 'parent').filter(parent__isnull=True)
-    subcat = ''
-    products = Product.objects.all()
-    tags = ProductTags.objects.all()
-    for category in categories:
-        subcategories = get_subcategories(category)
-        subcategories.append(category)
-        total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
-        category.total_products_count = total_products
+class ShopView(ListView):
+    model = Product
+    template_name = 'shop.html'
+    context_object_name = 'products'
+    paginate_by = 8
 
-    category='shop'
+    def get_queryset(self):
+        # Get initial products
+        products = Product.objects.all()
+        slug = self.kwargs.get('slug')
+
+        # Filter by category if slug is provided
+        if slug:
+            category = get_object_or_404(Category, slug=slug)
+            subcategories = [category] + get_subcategories(category)
+            products = products.filter(categories__in=subcategories).distinct()
 
 
-    if slug:
+        # Apply additional filtering based on GET parameters
+        query = self.request.GET.get('query', '')
+        price_limit = self.request.GET.get('price')
+        tag = self.request.GET.get('tags')
+        sorting_options = self.request.GET.get('fruitlist')
 
-        category = get_object_or_404(Category, slug=slug)
-        subcategories = get_subcategories(category)
+        if query:
+            products = products.filter(name__icontains=query)
+        if price_limit and price_limit.isdigit():
+            if int(price_limit)>0:
+                products = products.filter(price__lte=float(price_limit))
+        if tag:
+            products = products.filter(tags__name=tag)
 
-        if len(subcategories)==0:
+        # Apply sorting
+        if sorting_options == 'price':
+            products = products.order_by('price')
+        elif sorting_options == 'star':
+            products = products.order_by('-star')
+
+        return products
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Fetch and annotate categories
+        categories = Category.objects.prefetch_related('products', 'children', 'parent').filter(parent__isnull=True)
+        for category in categories:
+            subcategories = get_subcategories(category)
             subcategories.append(category)
+            total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
+            category.total_products_count = total_products
+        subcat = []
+        slug = self.kwargs.get('slug')
+        context['category'] = 'shop'
 
-        
+        # Handle subcategories if a category slug is provided
+        if slug:
+            category = get_object_or_404(Category, slug=slug)
+            subcategories = get_subcategories(category)
+            for subcategory in subcategories:
+                total_products = Product.objects.filter(categories=subcategory).count()
+                subcategory.total_products_count = total_products
+            subcat = subcategories if subcategories else [category]
+            context['category'] = category
 
-        products = products.filter(categories__in=subcategories).distinct()
-        for subcategory in subcategories:
-            total_products = Product.objects.filter(categories=subcategory).count()
-            subcategory.total_products_count = total_products
-        subcat = subcategories
+        # Initialize and retrieve form values
+        context['form'] = ProductSearchForm(self.request.GET or None)
+        context['slug'] = slug
+        context['subcat'] = subcat
+        context['categories'] = categories
+        context['tags'] = ProductTags.objects.all()
 
-    form = ProductSearchForm(request.GET or None)
-    results = Product.objects.all()
-    query = request.GET.get('query', '')
-    price_limit = request.GET.get('price')
-    tag = request.GET.get('tags')
-    sorting_options = request.GET.get('fruitlist')
+        # Get cart item count
+        cart, created = Cart.objects.get_or_create(user=self.request.user)
+        context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
 
-    if sorting_options!='nothing':
-        if sorting_options=='price':
-            results = results.order_by('price')
-            products = results
-        elif sorting_options=='star':
-            results = results.order_by('-star')
-            products = results
+        # პაგინაცია ვერ ავამუშაე :(
 
-
-    if query:
-        results = results.filter(name__icontains=query)
-        products = results
-
-    if tag:
-        results = results.filter(tags__name=tag)
-        products = results
-
-
-    if price_limit:
-        if int(price_limit)>0:
-            price_limit = float(price_limit)
-            results = results.filter(price__lte=price_limit)
-            products = results
-
-    paginator = Paginator(products, 3)
-    page_number = request.GET.get('page')
-    try:
-        products = paginator.page(page_number)
-    except PageNotAnInteger:
-        products = paginator.page(1)
-    except EmptyPage:
-        products = paginator.page(paginator.num_pages)
-
-    cart, created = Cart.objects.get_or_create(user=request.user)
-
-
-    total_cart_items = sum(item.quantity for item in cart.items.all())
+        return context
 
 
 
-
-    return render(request, 'shop.html', {
-        'products': products,
-        'categories': categories,
-        'form': form,
-        'slug': slug,
-        'subcat': subcat,
-        'tags' : tags,
-        'total_cart_items' : total_cart_items,
-        'category':category
-    })
-
-
-def add_product(request,product_id):
-    if request.method == 'POST':
+class AddProductView(View):
+    def post(self, request, product_id):
+        # Get the product and the cart
         product = get_object_or_404(Product, id=product_id)
         cart, created = Cart.objects.get_or_create(user=request.user)
 
-        if product.quantity>0:
+        # Add product to cart if it's in stock
+        if product.quantity > 0:
             cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
             cart_item.quantity += 1
             cart_item.save()
-            product.quantity-=1
+            product.quantity -= 1
             product.save()
 
+        # Redirect back to the shop page after adding to cart
+        return redirect('shop')
 
-    return redirect('shop')
 
-
-
-def shop_detail(request):
-    return render(request,'shop-detail.html')
+class ShopDetailView(TemplateView):
+    template_name = 'shop-detail.html'
