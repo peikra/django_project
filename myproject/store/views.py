@@ -3,6 +3,9 @@ from django.db.models import Count, F, Sum, Avg
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.views import View
+from django.views.generic import ListView
+
 from .models import Category, Product, ProductTags
 from django.http import JsonResponse
 from .forms import ProductSearchForm
@@ -10,15 +13,7 @@ from order.models import Cart
 from order.models import CartItem
 
 
-def get_subcategories(category):
-    subcategories = category.children.all()
-    all_subcategories = list(subcategories)
 
-
-    for subcategory in subcategories:
-        all_subcategories += get_subcategories(subcategory)
-
-    return all_subcategories
 #
 #
 #
@@ -64,12 +59,16 @@ def get_subcategories(category):
 #     categories = products.categories.all()
 #
 #     return render(request,'product_detail.html',{'products':products,'categories':categories})
-#
-#
+def get_subcategories(category):
+    subcategories = category.children.all()
+    all_subcategories = list(subcategories)
 
 
+    for subcategory in subcategories:
+        all_subcategories += get_subcategories(subcategory)
 
-#
+    return all_subcategories
+
 def shop(request, slug=None):
     categories = Category.objects.prefetch_related('products', 'children', 'parent').filter(parent__isnull=True)
     subcat = ''
@@ -88,6 +87,7 @@ def shop(request, slug=None):
 
         category = get_object_or_404(Category, slug=slug)
         subcategories = get_subcategories(category)
+        subcategories.append(category)
 
         products = products.filter(categories__in=subcategories).distinct()
         for subcategory in subcategories:
@@ -174,4 +174,3 @@ def add_product(request,product_id):
 
 def shop_detail(request):
     return render(request,'shop-detail.html')
-
