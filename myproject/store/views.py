@@ -163,7 +163,7 @@ class ShopView(ListView):
     model = Product
     template_name = 'shop.html'
     context_object_name = 'products'
-    paginate_by = 8
+    paginate_by = 4
 
     def get_queryset(self):
         # Get initial products

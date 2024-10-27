@@ -241,8 +241,7 @@
         <a class="rounded disabled">&laquo;</a>
         <a class="rounded disabled">&lt;</a>
     {% endif %}
-    <h3>{{products.paginator}}</h3>
-    {% for num in products.paginator.page_range %}
+    {% for num in paginator.page_range %}
         {% if products.number == num %}
             <a href="#" class="active rounded">{{ num }}</a>  <!-- Current page -->
         {% else %}
