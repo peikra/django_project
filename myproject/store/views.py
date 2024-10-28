@@ -163,7 +163,7 @@ class ShopView(ListView):
     model = Product
     template_name = 'shop.html'
     context_object_name = 'products'
-    paginate_by = 4
+    paginate_by = 3
 
     def get_queryset(self):
         # Get initial products
@@ -260,3 +260,10 @@ class AddProductView(View):
 
 class ShopDetailView(TemplateView):
     template_name = 'shop-detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        cart, created = Cart.objects.get_or_create(user=self.request.user)
+        context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
+
+        return context
