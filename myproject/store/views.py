@@ -1,4 +1,5 @@
-
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, F, Sum, Avg
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
@@ -166,18 +167,18 @@ class ShopView(ListView):
     paginate_by = 3
 
     def get_queryset(self):
-        # Get initial products
+
         products = Product.objects.all()
         slug = self.kwargs.get('slug')
 
-        # Filter by category if slug is provided
+
         if slug:
             category = get_object_or_404(Category, slug=slug)
             subcategories = [category] + get_subcategories(category)
             products = products.filter(categories__in=subcategories).distinct()
 
 
-        # Apply additional filtering based on GET parameters
+
         query = self.request.GET.get('query', '')
         price_limit = self.request.GET.get('price')
         tag = self.request.GET.get('tags')
@@ -191,7 +192,7 @@ class ShopView(ListView):
         if tag:
             products = products.filter(tags__name=tag)
 
-        # Apply sorting
+
         if sorting_options == 'price':
             products = products.order_by('price')
         elif sorting_options == 'star':
@@ -202,7 +203,6 @@ class ShopView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Fetch and annotate categories
         categories = Category.objects.prefetch_related('products', 'children', 'parent').filter(parent__isnull=True)
         for category in categories:
             subcategories = get_subcategories(category)
@@ -213,7 +213,7 @@ class ShopView(ListView):
         slug = self.kwargs.get('slug')
         context['category'] = 'shop'
 
-        # Handle subcategories if a category slug is provided
+
         if slug:
             category = get_object_or_404(Category, slug=slug)
             subcategories = get_subcategories(category)
@@ -223,16 +223,20 @@ class ShopView(ListView):
             subcat = subcategories if subcategories else [category]
             context['category'] = category
 
-        # Initialize and retrieve form values
+
         context['form'] = ProductSearchForm(self.request.GET or None)
         context['slug'] = slug
         context['subcat'] = subcat
         context['categories'] = categories
         context['tags'] = ProductTags.objects.all()
 
-        # Get cart item count
-        cart, created = Cart.objects.get_or_create(user=self.request.user)
-        context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
+        if self.request.user.is_authenticated:
+            cart, created = Cart.objects.get_or_create(user=self.request.user)
+            context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
+
+
+        else:
+            context['total_cart_items'] = 0
 
 
 
@@ -242,11 +246,13 @@ class ShopView(ListView):
 
 class AddProductView(View):
     def post(self, request, product_id):
-        # Get the product and the cart
+
+        if not request.user.is_authenticated:
+            return redirect('login')
         product = get_object_or_404(Product, id=product_id)
         cart, created = Cart.objects.get_or_create(user=request.user)
 
-        # Add product to cart if it's in stock
+
         if product.quantity > 0:
             cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
             cart_item.quantity += 1
@@ -254,7 +260,7 @@ class AddProductView(View):
             product.quantity -= 1
             product.save()
 
-        # Redirect back to the shop page after adding to cart
+
         return redirect('shop')
 
 
@@ -263,7 +269,12 @@ class ShopDetailView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        cart, created = Cart.objects.get_or_create(user=self.request.user)
-        context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
+        if self.request.user.is_authenticated:
+            cart, created = Cart.objects.get_or_create(user=self.request.user)
+            context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
+
+
+        else:
+            context['total_cart_items'] = 0
 
         return context

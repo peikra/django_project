@@ -60,6 +60,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    'user.middleware.UpdateLastActiveMiddleware',
+    'user.middleware.UserActivityMiddleware',
 ]
 
 ROOT_URLCONF = 'myproject.urls'
