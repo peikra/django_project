@@ -13,11 +13,6 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        if self.request.user.is_authenticated:
-            cart, created = Cart.objects.get_or_create(user=self.request.user)
-            context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
-        else:
-            context['total_cart_items'] = 0
 
         return context
 
@@ -26,10 +21,5 @@ class ContactView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            cart, created = Cart.objects.get_or_create(user=self.request.user)
-            context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
-        else:
-            context['total_cart_items'] = 0
-
+       
         return context

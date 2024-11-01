@@ -6,7 +6,6 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.views import View
 from django.views.generic import ListView, TemplateView
-
 from .models import Category, Product, ProductTags
 from django.http import JsonResponse
 from .forms import ProductSearchForm
@@ -150,15 +149,7 @@ from order.models import CartItem
 #         'total_cart_items' : total_cart_items,
 #         'category':category
 #     })
-def get_subcategories(category):
-    subcategories = category.children.all()
-    all_subcategories = list(subcategories)
 
-
-    for subcategory in subcategories:
-        all_subcategories += get_subcategories(subcategory)
-
-    return all_subcategories
 
 class ShopView(ListView):
     model = Product
@@ -174,8 +165,8 @@ class ShopView(ListView):
 
         if slug:
             category = get_object_or_404(Category, slug=slug)
-            subcategories = [category] + get_subcategories(category)
-            products = products.filter(categories__in=subcategories).distinct()
+            all_children = category.get_descendants(include_self=True)
+            products = products.filter(categories__in=all_children).distinct()
 
 
 
@@ -203,10 +194,9 @@ class ShopView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        categories = Category.objects.prefetch_related('products', 'children', 'parent').filter(parent__isnull=True)
+        categories = Category.objects.filter(parent__isnull=True)
         for category in categories:
-            subcategories = get_subcategories(category)
-            subcategories.append(category)
+            subcategories =category.get_descendants()
             total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
             category.total_products_count = total_products
         subcat = []
@@ -216,7 +206,7 @@ class ShopView(ListView):
 
         if slug:
             category = get_object_or_404(Category, slug=slug)
-            subcategories = get_subcategories(category)
+            subcategories = category.get_descendants()
             for subcategory in subcategories:
                 total_products = Product.objects.filter(categories=subcategory).count()
                 subcategory.total_products_count = total_products
@@ -229,16 +219,6 @@ class ShopView(ListView):
         context['subcat'] = subcat
         context['categories'] = categories
         context['tags'] = ProductTags.objects.all()
-
-        if self.request.user.is_authenticated:
-            cart, created = Cart.objects.get_or_create(user=self.request.user)
-            context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
-
-
-        else:
-            context['total_cart_items'] = 0
-
-
 
         return context
 
@@ -269,12 +249,5 @@ class ShopDetailView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            cart, created = Cart.objects.get_or_create(user=self.request.user)
-            context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
-
-
-        else:
-            context['total_cart_items'] = 0
 
         return context

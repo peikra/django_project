@@ -44,7 +44,8 @@ INSTALLED_APPS = [
     'store',
     'order',
     'user',
-    'versatileimagefield'
+    'versatileimagefield',
+    'mptt',
 
 
 ]
@@ -77,6 +78,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'store.context_processors.cart_items_count'
             ],
         },
     },

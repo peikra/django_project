@@ -1,6 +1,8 @@
 # views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
+from django.views.decorators.http import require_POST
+
 from .forms import CustomUserCreationForm
 from django.contrib.auth import authenticate, login
 
@@ -15,8 +17,6 @@ def register(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'registration.html', {'form': form})
-
-
 
 
 
@@ -35,7 +35,7 @@ def login_view(request):
     return render(request, 'login.html')
 
 
-
+@require_POST
 def log_out(request):
     logout(request)
     return redirect('home')

@@ -19,7 +19,6 @@ class CartView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
 
         cart, created = Cart.objects.get_or_create(user=self.request.user)
-        context['total_cart_items'] = sum(item.quantity for item in cart.items.all())
         cart_item_products = cart.items.prefetch_related('product')
         context['products'] = cart_item_products
 
