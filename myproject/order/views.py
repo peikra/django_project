@@ -5,7 +5,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from django.views.generic import TemplateView, ListView
 from order.models import CartItem, Cart
-from store.models import Product
+from store.models import Product,Category
 
 
 
@@ -21,6 +21,8 @@ class CartView(LoginRequiredMixin, TemplateView):
         cart, created = Cart.objects.get_or_create(user=self.request.user)
         cart_item_products = cart.items.prefetch_related('product')
         context['products'] = cart_item_products
+        categories = Category.objects.filter(parent__isnull=True)
+        context['categories'] = categories
 
         return context
 

@@ -112,6 +112,12 @@
             <div class="error-message">{{ error_message }}</div>
         {% endif %}
         <p style="text-align:center; margin-top: 1rem;">Don't have an account? <a href="{% url 'register' %}">Register</a></p>
+         {% if messages %}
+            {% for message in messages %}
+                    <div style="margin-top:20px; margin-left:50px" class="alert alert-success">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
     </div>
+
 </body>
 </html>

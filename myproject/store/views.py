@@ -4,13 +4,16 @@ from django.db.models import Count, F, Sum, Avg
 from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.utils.decorators import method_decorator
 from django.views import View
+from django.views.decorators.cache import cache_page
 from django.views.generic import ListView, TemplateView
 from .models import Category, Product, ProductTags
 from django.http import JsonResponse
 from .forms import ProductSearchForm
 from order.models import Cart
 from order.models import CartItem
+from django.core.cache import cache
 
 
 
@@ -159,50 +162,66 @@ class ShopView(ListView):
 
     def get_queryset(self):
 
-        products = Product.objects.all()
         slug = self.kwargs.get('slug')
-
-
-        if slug:
-            category = get_object_or_404(Category, slug=slug)
-            all_children = category.get_descendants(include_self=True)
-            products = products.filter(categories__in=all_children).distinct()
-
-
-
         query = self.request.GET.get('query', '')
         price_limit = self.request.GET.get('price')
         tag = self.request.GET.get('tags')
         sorting_options = self.request.GET.get('fruitlist')
 
-        if query:
-            products = products.filter(name__icontains=query)
-        if price_limit and price_limit.isdigit():
-            if int(price_limit)>0:
-                products = products.filter(price__lte=float(price_limit))
-        if tag:
-            products = products.filter(tags__name=tag)
+
+        cache_key = f"products_{slug}_{query}_{price_limit}_{tag}_{sorting_options}"
 
 
-        if sorting_options == 'price':
-            products = products.order_by('price')
-        elif sorting_options == 'star':
-            products = products.order_by('-star')
+        products = cache.get(cache_key)
+        if products is None:
 
+            products = Product.objects.all()
+
+            if slug:
+                category = get_object_or_404(Category, slug=slug)
+                all_children = category.get_descendants(include_self=True)
+                products = products.filter(categories__in=all_children).distinct()
+
+            if query:
+                products = products.filter(name__icontains=query)
+            if price_limit and price_limit.isdigit():
+                if int(price_limit) > 0:
+                    products = products.filter(price__lte=float(price_limit))
+            if tag:
+                products = products.filter(tags__name=tag)
+
+
+            if sorting_options == 'price':
+                products = products.order_by('price')
+            elif sorting_options == 'star':
+                products = products.order_by('-star')
+
+
+            cache.set(cache_key, products, 60 * 10)
         return products
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        categories = Category.objects.filter(parent__isnull=True)
-        for category in categories:
-            subcategories =category.get_descendants()
-            total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
-            category.total_products_count = total_products
+        # Cache categories and tags
+        categories = cache.get('categories')
+        if not categories:
+            categories = Category.objects.filter(parent__isnull=True)
+            for category in categories:
+                subcategories = category.get_descendants()
+                total_products = Product.objects.filter(categories__in=subcategories).distinct().count()
+                category.total_products_count = total_products
+            cache.set('categories', categories, 60 * 10)
+
+        tags = cache.get('tags')
+        if not tags:
+            tags = ProductTags.objects.all()
+            cache.set('tags', tags, 60 * 10)
+
+
         subcat = []
         slug = self.kwargs.get('slug')
         context['category'] = 'shop'
-
 
         if slug:
             category = get_object_or_404(Category, slug=slug)
@@ -213,12 +232,11 @@ class ShopView(ListView):
             subcat = subcategories if subcategories else [category]
             context['category'] = category
 
-
         context['form'] = ProductSearchForm(self.request.GET or None)
         context['slug'] = slug
         context['subcat'] = subcat
         context['categories'] = categories
-        context['tags'] = ProductTags.objects.all()
+        context['tags'] = tags
 
         return context
 
@@ -243,11 +261,11 @@ class AddProductView(View):
 
         return redirect('shop')
 
-
 class ShopDetailView(TemplateView):
     template_name = 'shop-detail.html'
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        categories = Category.objects.filter(parent__isnull=True)
+        context['categories'] = categories
 
         return context
