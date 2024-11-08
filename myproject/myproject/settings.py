@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 from django.conf.global_settings import MEDIA_ROOT, MEDIA_URL, INTERNAL_IPS, AUTH_USER_MODEL, STATIC_ROOT, \
-    STATICFILES_DIRS, ALLOWED_HOSTS
+    STATICFILES_DIRS, ALLOWED_HOSTS, LANGUAGES, LOCALE_PATHS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     'user',
     'versatileimagefield',
     'mptt',
+    'rosetta',
+    'modeltranslation'
 
 
 ]
@@ -59,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -122,13 +125,22 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ka'
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
+
+
+
+
+LANGUAGES = [
+    ('ka' , 'Georgian'),
+    ('en' , 'English')
+]
+
 
 
 # Static files (CSS, JavaScript, Images)
@@ -152,10 +164,16 @@ INTERNAL_IPS = [
     "127.0.0.1",
     # ...
 ]
+LOCALE_PATHS = [
+    BASE_DIR / 'locale'
+]
+
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'mikheil.peikrishvili.1@btu.edu.ge'
-EMAIL_HOST_PASSWORD = 'sxqc tlry gbxe hxtq'
+EMAIL_HOST_PASSWORD = "sxqc tlry gbxe hxtq"
+
+#sxqc tlry gbxe hxtq

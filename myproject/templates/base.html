@@ -1,4 +1,4 @@
-{%load static%}
+{%load static i18n%}
 
 
 <!DOCTYPE html>
@@ -35,8 +35,7 @@
 </head>
 <body>
  <!-- Spinner Start -->
-         {% load cache %}
-        {% cache 600 sidebar %}
+
 
         <div id="spinner" class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
             <div class="spinner-grow text-primary" role="status"></div>
@@ -67,13 +66,13 @@
                     </button>
                     <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                         <div class="navbar-nav mx-auto">
-                            <a href="{%url 'home' %}" class="nav-item nav-link active">Home</a>
+                            <a href="{%url 'home' %}" class="nav-item nav-link active">{% trans 'მთავარი' %}</a>
 
-                            <a href="{%url 'shop' %}" class="nav-item nav-link">Shop</a>
+                            <a href="{%url 'shop' %}" class="nav-item nav-link">{% trans 'პროდუქტები' %}</a>
 
-                            <a href="{%url 'shop_detail' %}" class="nav-item nav-link">Shop Detail</a>
+                            <a href="{%url 'shop_detail' %}" class="nav-item nav-link">{% trans 'პროდუქტი' %}</a>
                             <div class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">categories</a>
+                                <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">{% trans 'კატეგორიები' %}</a>
                                 <div class="dropdown-menu m-0 bg-secondary rounded-0">
                                     {%for i in categories%}
                                         {%if i.parent is None%}
@@ -83,9 +82,9 @@
 
                                 </div>
                             </div>
-                            <a href="{%url 'contact' %}" class="nav-item nav-link">Contact</a>
+                            <a href="{%url 'contact' %}" class="nav-item nav-link">{% trans 'კონტაქტი' %}</a>
                         </div>
-                        {%endcache%}
+
 
                         <div class="d-flex m-3 me-0">
                             <button class="btn-search btn border border-secondary btn-md-square rounded-circle bg-white me-4" data-bs-toggle="modal" data-bs-target="#searchModal"><i class="fas fa-search text-primary"></i></button>

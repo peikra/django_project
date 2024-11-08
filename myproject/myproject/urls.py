@@ -14,8 +14,7 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-
-
+from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
 from django.urls import path, re_path
 from django.urls import include
@@ -24,18 +23,21 @@ from django.conf.urls.static import static
 from debug_toolbar.toolbar import debug_toolbar_urls
 from django.views.static import serve
 
-urlpatterns = [
+urlpatterns = i18n_patterns(
     path('admin/', admin.site.urls),
     path('store/', include('store.urls')),
     path('order/', include('order.urls')),
     path('',include('home.urls')),
     path('user/', include('user.urls')),
+    path('rosetta/', include('rosetta.urls')),
+
+    prefix_default_language= False
 
 
 
 
 
-]+ debug_toolbar_urls()
+)+ debug_toolbar_urls()
 
 
 
@@ -43,3 +45,4 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns+= static(settings.STATIC_URL, document_root = settings.STATIC_ROOT)
+
